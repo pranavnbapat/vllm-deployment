@@ -30,20 +30,26 @@ This repo turns your manual RunPod setup into a repeatable flow.
    git clone https://github.com/pranavnbapat/vllm-deployment.git
    cd vllm-deployment
    ```
-2. Copy env template:
+2. Install required system packages first (includes `nano`, `curl`, `supervisor`, etc.):
+   ```bash
+   sudo bash scripts/bootstrap_runpod.sh
+   ```
+3. Copy env template:
    ```bash
    mkdir -p /workspace/ops
    cp env/runpod.env.example /workspace/ops/runpod.env
    nano /workspace/ops/runpod.env
    ```
-3. Set at minimum:
+4. Set at minimum:
    - `VLLM_MODEL`
    - `SERVED_MODEL_NAME`
    - `VLLM_API_KEY` (long random token)
    - `SUPERVISOR_UI_PASS` (strong password)
-4. Run deployment as root:
+5. Generate config and start services:
    ```bash
-   sudo bash scripts/deploy.sh /workspace/ops/runpod.env
+   bash scripts/generate_supervisor_config.sh /workspace/ops/runpod.env
+   bash scripts/supervisor_manage.sh /workspace/ops/supervisord.conf start
+   bash scripts/supervisor_manage.sh /workspace/ops/supervisord.conf status
    ```
 
 ## Script order (exact)
