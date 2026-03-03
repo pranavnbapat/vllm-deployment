@@ -45,12 +45,35 @@ This repo turns your manual RunPod setup into a repeatable flow.
    - `SERVED_MODEL_NAME`
    - `VLLM_API_KEY` (long random token)
    - `SUPERVISOR_UI_PASS` (strong password)
+   - If `ENABLE_MEDIA_TRANSCRIBER=true`, also set `MEDIA_REPO_URL`.
 5. Generate config and start services:
    ```bash
    bash scripts/generate_supervisor_config.sh /workspace/ops/runpod.env
    bash scripts/supervisor_manage.sh /workspace/ops/supervisord.conf start
    bash scripts/supervisor_manage.sh /workspace/ops/supervisord.conf status
    ```
+
+## Generate vLLM API key
+
+`vllm --api-key` accepts any string format (no required prefix/suffix/algorithm), but use a long random token.
+
+OpenSSL method:
+```bash
+openssl rand -base64 48 | tr -d '\\n'
+```
+
+Python method:
+```bash
+python3 - <<'PY'
+import secrets
+print(secrets.token_urlsafe(48))
+PY
+```
+
+Set it in `/workspace/ops/runpod.env`:
+```bash
+VLLM_API_KEY=your_generated_token_here
+```
 
 ## Script order (exact)
 

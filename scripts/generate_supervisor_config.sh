@@ -31,7 +31,7 @@ EXTRA_VLLM_ARGS="${EXTRA_VLLM_ARGS:-}"
 SUPERVISOR_UI_USER="${SUPERVISOR_UI_USER:-admin}"
 SUPERVISOR_UI_PASS="${SUPERVISOR_UI_PASS:-change-me}"
 ENABLE_MEDIA_TRANSCRIBER="${ENABLE_MEDIA_TRANSCRIBER:-false}"
-MEDIA_REPO_URL="${MEDIA_REPO_URL:-https://github.com/pranavnbapat/media_transcriber.git}"
+MEDIA_REPO_URL="${MEDIA_REPO_URL:-}"
 MEDIA_REPO_DIR="${MEDIA_REPO_DIR:-/workspace/services/media_transcriber}"
 MEDIA_PORT="${MEDIA_PORT:-8005}"
 BASIC_USER="${BASIC_USER:-}"
@@ -70,6 +70,10 @@ EOV
 chmod 700 "${WORKSPACE_DIR}/ops/run_vllm.sh"
 
 if [[ "${ENABLE_MEDIA_TRANSCRIBER}" == "true" ]]; then
+  if [[ -z "${MEDIA_REPO_URL}" ]]; then
+    echo "ENABLE_MEDIA_TRANSCRIBER=true but MEDIA_REPO_URL is empty in ${ENV_FILE}." >&2
+    exit 1
+  fi
   mkdir -p "${WORKSPACE_DIR}/envs"
   if [[ ! -d "${MEDIA_REPO_DIR}" ]]; then
     git clone "${MEDIA_REPO_URL}" "${MEDIA_REPO_DIR}"
