@@ -162,6 +162,17 @@ GPU quick check:
 nvidia-smi
 ```
 
+## Expected deployment time
+
+On a fresh RunPod pod, expect about **8 to 25 minutes** in typical cases.
+
+- `apt-get update/install`: ~1 to 5 minutes
+- Python + `vllm` install: ~3 to 12 minutes
+- First model download from Hugging Face: ~3 to 30+ minutes (largest variable)
+- Model load/warmup: ~1 to 5 minutes
+
+If the model is already cached under `/workspace`, restarts are usually **1 to 4 minutes**.
+
 ## Security notes
 
 - Do not commit `/workspace/ops/runpod.env`.
