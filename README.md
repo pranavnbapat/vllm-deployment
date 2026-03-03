@@ -23,7 +23,13 @@ This repo turns your manual RunPod setup into a repeatable flow.
 
 ## Quick start on a fresh pod
 
-1. Clone this repo under `/workspace/services` (or anywhere you prefer).
+1. Create `services` directory and clone this repo:
+   ```bash
+   mkdir -p /workspace/services
+   cd /workspace/services
+   git clone https://github.com/pranavnbapat/vllm-deployment.git
+   cd vllm-deployment
+   ```
 2. Copy env template:
    ```bash
    mkdir -p /workspace/ops
