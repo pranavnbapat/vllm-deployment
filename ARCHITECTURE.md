@@ -11,7 +11,7 @@
 
 - `vLLM API server` (default port `8000`): OpenAI-compatible API and `/metrics`.
 - `supervisord`: manages long-running processes.
-- `Supervisor Web UI` (default `127.0.0.1:9001`): process status and logs.
+- `Supervisor Web UI` (default `127.0.0.1:9000`): process status and logs.
 - `metrics_tui.sh`: lightweight terminal dashboard polling `/metrics`.
 - `nvidia-smi`/`nvtop`/`gpustat`: GPU utilization and VRAM monitoring.
 
@@ -25,7 +25,7 @@
 ## Network Recommendations
 
 - Expose `8000` for vLLM API (required for external clients).
-- Do not expose `9001` (Supervisor UI).
+- Do not expose `9000` (Supervisor UI).
 - If remote Supervisor access is needed, tunnel/port-forward to localhost.
 - Optional: put an authenticated reverse proxy on a separate port if you need browser access from internet.
 
