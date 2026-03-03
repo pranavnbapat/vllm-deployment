@@ -1,5 +1,72 @@
-.env
-*.log
+# ----------------------------
+# OS / Editor
+# ----------------------------
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+
+# ----------------------------
+# Python
+# ----------------------------
 __pycache__/
-*.pyc
+*.py[cod]
+*$py.class
+.python-version
+
+# Virtual environments
+.venv/
+venv/
+ENV/
+
+# Packaging / build
+build/
+dist/
+site/
+.eggs/
+*.egg-info/
+pip-wheel-metadata/
+
+# Test / lint / typing caches
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.pyre/
+.hypothesis/
+.coverage
+.coverage.*
+htmlcov/
+.tox/
+.nox/
+
+# Jupyter
+.ipynb_checkpoints/
+
+# ----------------------------
+# Logs / runtime
+# ----------------------------
+*.log
+logs/
+*.pid
+*.pid.lock
+*.sock
+
+# ----------------------------
+# Secrets / local config
+# ----------------------------
+.env
+*.pem
+*.key
+*.crt
+*.p12
+*.secret
+secrets/
+
+# Local RunPod/operator files (if copied into repo)
+runpod.env
+ops/
 workspace/
+
+# Keep safe templates in git
+!env/
+!env/*.example
