@@ -20,6 +20,7 @@ It works on RunPod and other Linux GPU environments with similar privileges.
 - `scripts/metrics_tui.sh`: lightweight live metrics view from `/metrics`
 - `scripts/setup_supervisor_public_proxy.sh`: set up Nginx + Basic Auth public proxy for Supervisor UI
 - `scripts/deploy.sh`: one-shot bootstrap + configure + start
+- `scripts/stop.sh`: one-shot supervisor shutdown for all managed services
 - `env/vllm.env.example`: environment template
 - `ARCHITECTURE.md`: deployment architecture and security model
 - `TROUBLESHOOTING.md`: common errors and fixes from real setup runs
@@ -58,6 +59,14 @@ It works on RunPod and other Linux GPU environments with similar privileges.
    ```bash
    watch -n 2 "bash scripts/supervisor_manage.sh /workspace/ops/supervisord.conf status; ss -ltnp | grep 8000 || true"
    ```
+
+7. Readiness check (explicit, with timeout):
+   ```bash
+   source /workspace/ops/vllm.env
+   timeout 1200 bash -c 'until curl -fsS -H "Authorization: Bearer $VLLM_API_KEY" http://127.0.0.1:8000/v1/models >/dev/null; do echo "not ready yet"; sleep 5; done; echo "READY"'
+   ```
+   - `READY` means API is serving requests.
+   - `timeout` after 1200s (20 min) means startup failed or is stuck; check logs.
 
 ## Generate vLLM API key
 
@@ -141,6 +150,11 @@ Apply supervisor config changes:
 bash scripts/supervisor_manage.sh /workspace/ops/supervisord.conf reload
 ```
 
+Shutdown all services:
+```bash
+bash scripts/stop.sh
+```
+
 Follow logs:
 ```bash
 bash scripts/supervisor_manage.sh /workspace/ops/supervisord.conf tail vllm_text_8000
@@ -172,6 +186,27 @@ curl -s http://127.0.0.1:8000/metrics | grep -E "kv_cache|num_requests"
 GPU quick check:
 ```bash
 nvidia-smi
+```
+
+If `supervisor status` is `RUNNING` but `curl` gets `Connection refused` on `:8000`, check logs:
+```bash
+bash scripts/supervisor_manage.sh /workspace/ops/supervisord.conf tail vllm_text_8000
+```
+
+Also verify the effective port if you changed `VLLM_PORT`:
+```bash
+source /workspace/ops/vllm.env
+echo "VLLM_PORT=$VLLM_PORT"
+ss -ltnp | grep ":${VLLM_PORT}" || true
+```
+
+Common cause is unsupported model architecture in your current `vllm`/`transformers` stack. To switch to a known-working model:
+```bash
+sed -i 's|^VLLM_MODEL=.*|VLLM_MODEL=Qwen/Qwen2.5-7B-Instruct|' /workspace/ops/vllm.env
+sed -i 's|^SERVED_MODEL_NAME=.*|SERVED_MODEL_NAME=qwen2.5-7b|' /workspace/ops/vllm.env
+sed -i 's|^TRUST_REMOTE_CODE=.*|TRUST_REMOTE_CODE=false|' /workspace/ops/vllm.env
+bash scripts/generate_supervisor_config.sh /workspace/ops/vllm.env
+bash scripts/supervisor_manage.sh /workspace/ops/supervisord.conf restart vllm_text_8000
 ```
 
 ## Expected deployment time
