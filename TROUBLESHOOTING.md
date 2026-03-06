@@ -90,8 +90,8 @@ The selected checkpoint architecture is not supported by current vLLM runtime.
 Use a vLLM-supported model in `vllm.env`:
 
 ```bash
-VLLM_MODEL=Qwen/Qwen2.5-7B-Instruct
-SERVED_MODEL_NAME=qwen2.5-7b
+VLLM_MODEL=Qwen/Qwen3.5-9B
+SERVED_MODEL_NAME=qwen3.5-9b
 TRUST_REMOTE_CODE=false
 ```
 
@@ -215,8 +215,8 @@ python3 -m venv /workspace/envs/vllm
 /workspace/envs/vllm/bin/pip install "vllm==0.16.0"
 
 # Set supported model
-sed -i 's|^VLLM_MODEL=.*|VLLM_MODEL=Qwen/Qwen2.5-7B-Instruct|' /workspace/ops/vllm.env
-sed -i 's|^SERVED_MODEL_NAME=.*|SERVED_MODEL_NAME=qwen2.5-7b|' /workspace/ops/vllm.env
+sed -i 's|^VLLM_MODEL=.*|VLLM_MODEL=Qwen/Qwen3.5-9B|' /workspace/ops/vllm.env
+sed -i 's|^SERVED_MODEL_NAME=.*|SERVED_MODEL_NAME=qwen3.5-9b|' /workspace/ops/vllm.env
 sed -i 's|^TRUST_REMOTE_CODE=.*|TRUST_REMOTE_CODE=false|' /workspace/ops/vllm.env
 
 bash scripts/generate_supervisor_config.sh /workspace/ops/vllm.env

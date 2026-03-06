@@ -24,8 +24,6 @@ It works on RunPod and other Linux GPU environments with similar privileges.
 - `ARCHITECTURE.md`: deployment architecture and security model
 - `TROUBLESHOOTING.md`: common errors and fixes from real setup runs
 
-Canonical bootstrap script is `scripts/bootstrap_gpu_host.sh`. Legacy `scripts/bootstrap_runpod.sh` is kept as a compatibility wrapper.
-
 ## Quick start on a fresh GPU host
 
 1. Create `services` directory and clone this repo:
@@ -217,10 +215,10 @@ sudo bash scripts/setup_supervisor_public_proxy.sh 9002 superadmin 'VeryStrongPa
 sudo bash scripts/setup_supervisor_public_proxy.sh 9002 superadmin 'VeryStrongPasswordHere' 1.2.3.4
 ```
 
-Then expose that port in your hosting provider and open its public URL (RunPod example):
+Then expose that port in your hosting provider and open:
 
 ```text
-https://<pod-id>-9002.proxy.runpod.net
+http(s)://<public-host>:9002
 ```
 
 You will see two auth layers:

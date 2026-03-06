@@ -2,13 +2,8 @@
 set -euo pipefail
 
 DEFAULT_ENV_FILE="/workspace/ops/vllm.env"
-LEGACY_ENV_FILE="/workspace/ops/runpod.env"
 ENV_FILE="${1:-${DEFAULT_ENV_FILE}}"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-
-if [[ $# -eq 0 && ! -f "${ENV_FILE}" && -f "${LEGACY_ENV_FILE}" ]]; then
-  ENV_FILE="${LEGACY_ENV_FILE}"
-fi
 
 if [[ ! -f "${ENV_FILE}" ]]; then
   echo "Env file not found: ${ENV_FILE}" >&2

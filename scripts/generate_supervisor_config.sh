@@ -2,12 +2,7 @@
 set -euo pipefail
 
 DEFAULT_ENV_FILE="/workspace/ops/vllm.env"
-LEGACY_ENV_FILE="/workspace/ops/runpod.env"
 ENV_FILE="${1:-${DEFAULT_ENV_FILE}}"
-
-if [[ $# -eq 0 && ! -f "${ENV_FILE}" && -f "${LEGACY_ENV_FILE}" ]]; then
-  ENV_FILE="${LEGACY_ENV_FILE}"
-fi
 
 if [[ ! -f "${ENV_FILE}" ]]; then
   echo "Env file not found: ${ENV_FILE}" >&2
@@ -26,8 +21,8 @@ VLLM_PORT="${VLLM_PORT:-8000}"
 SUPERVISOR_UI_HOST="${SUPERVISOR_UI_HOST:-127.0.0.1}"
 SUPERVISOR_UI_PORT="${SUPERVISOR_UI_PORT:-9000}"
 CUDA_VISIBLE_DEVICES="${CUDA_VISIBLE_DEVICES:-0}"
-VLLM_MODEL="${VLLM_MODEL:-Qwen/Qwen2.5-7B-Instruct}"
-SERVED_MODEL_NAME="${SERVED_MODEL_NAME:-qwen2.5-7b}"
+VLLM_MODEL="${VLLM_MODEL:-Qwen/Qwen3.5-9B}"
+SERVED_MODEL_NAME="${SERVED_MODEL_NAME:-qwen3.5-9b}"
 VLLM_DTYPE="${VLLM_DTYPE:-auto}"
 GPU_MEMORY_UTILIZATION="${GPU_MEMORY_UTILIZATION:-0.90}"
 MAX_MODEL_LEN="${MAX_MODEL_LEN:-32768}"
