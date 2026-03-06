@@ -1,6 +1,6 @@
 # Troubleshooting
 
-This page captures real issues seen during RunPod setup and the fixes.
+This page captures real issues seen during GPU-host setup and the fixes.
 
 ## 1) `nano: command not found`
 
@@ -19,13 +19,13 @@ Base pod does not include editor/tools yet.
 Run bootstrap first:
 
 ```bash
-bash scripts/bootstrap_runpod.sh
+bash scripts/bootstrap_gpu_host.sh
 ```
 
 Then edit env:
 
 ```bash
-nano /workspace/ops/runpod.env
+nano /workspace/ops/vllm.env
 ```
 
 ## 2) `supervisorctl ... no such file` for `/workspace/ops/supervisor.sock`
@@ -87,7 +87,7 @@ The selected checkpoint architecture is not supported by current vLLM runtime.
 
 ### Fix (recommended)
 
-Use a vLLM-supported model in `runpod.env`:
+Use a vLLM-supported model in `vllm.env`:
 
 ```bash
 VLLM_MODEL=Qwen/Qwen2.5-7B-Instruct
@@ -98,7 +98,7 @@ TRUST_REMOTE_CODE=false
 Apply changes:
 
 ```bash
-bash scripts/generate_supervisor_config.sh /workspace/ops/runpod.env
+bash scripts/generate_supervisor_config.sh /workspace/ops/vllm.env
 bash scripts/supervisor_manage.sh /workspace/ops/supervisord.conf restart vllm_text_8000
 ```
 
@@ -123,7 +123,7 @@ rm -rf /workspace/envs/vllm
 python3 -m venv /workspace/envs/vllm
 /workspace/envs/vllm/bin/pip install -U pip
 /workspace/envs/vllm/bin/pip install "vllm==0.16.0"
-bash scripts/generate_supervisor_config.sh /workspace/ops/runpod.env
+bash scripts/generate_supervisor_config.sh /workspace/ops/vllm.env
 bash scripts/supervisor_manage.sh /workspace/ops/supervisord.conf start
 ```
 
@@ -136,7 +136,7 @@ You set `--api-key`; endpoint requires auth header.
 ### Fix
 
 ```bash
-source /workspace/ops/runpod.env
+source /workspace/ops/vllm.env
 curl -s -H "Authorization: Bearer $VLLM_API_KEY" http://127.0.0.1:8000/v1/models | jq .
 ```
 
@@ -215,11 +215,11 @@ python3 -m venv /workspace/envs/vllm
 /workspace/envs/vllm/bin/pip install "vllm==0.16.0"
 
 # Set supported model
-sed -i 's|^VLLM_MODEL=.*|VLLM_MODEL=Qwen/Qwen2.5-7B-Instruct|' /workspace/ops/runpod.env
-sed -i 's|^SERVED_MODEL_NAME=.*|SERVED_MODEL_NAME=qwen2.5-7b|' /workspace/ops/runpod.env
-sed -i 's|^TRUST_REMOTE_CODE=.*|TRUST_REMOTE_CODE=false|' /workspace/ops/runpod.env
+sed -i 's|^VLLM_MODEL=.*|VLLM_MODEL=Qwen/Qwen2.5-7B-Instruct|' /workspace/ops/vllm.env
+sed -i 's|^SERVED_MODEL_NAME=.*|SERVED_MODEL_NAME=qwen2.5-7b|' /workspace/ops/vllm.env
+sed -i 's|^TRUST_REMOTE_CODE=.*|TRUST_REMOTE_CODE=false|' /workspace/ops/vllm.env
 
-bash scripts/generate_supervisor_config.sh /workspace/ops/runpod.env
+bash scripts/generate_supervisor_config.sh /workspace/ops/vllm.env
 supervisord -c /workspace/ops/supervisord.conf
 ```
 
@@ -235,8 +235,8 @@ Generate a new key and update env:
 
 ```bash
 openssl rand -base64 48 | tr -d '\n'
-nano /workspace/ops/runpod.env
-bash scripts/generate_supervisor_config.sh /workspace/ops/runpod.env
+nano /workspace/ops/vllm.env
+bash scripts/generate_supervisor_config.sh /workspace/ops/vllm.env
 bash scripts/supervisor_manage.sh /workspace/ops/supervisord.conf restart vllm_text_8000
 ```
 

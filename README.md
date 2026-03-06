@@ -1,6 +1,7 @@
-# RunPod vLLM + Supervisor Deployment
+# vLLM + Supervisor GPU Deployment
 
-This repo turns your manual RunPod setup into a repeatable flow.
+This repo turns manual GPU-host setup into a repeatable flow for vLLM serving.
+It works on RunPod and other Linux GPU environments with similar privileges.
 
 ## What it sets up
 
@@ -13,17 +14,19 @@ This repo turns your manual RunPod setup into a repeatable flow.
 
 ## Files
 
-- `scripts/bootstrap_runpod.sh`: base package + vLLM install
+- `scripts/bootstrap_gpu_host.sh`: base package + vLLM install
 - `scripts/generate_supervisor_config.sh`: generates `/workspace/ops/supervisord.conf`
 - `scripts/supervisor_manage.sh`: common supervisor operations
 - `scripts/metrics_tui.sh`: lightweight live metrics view from `/metrics`
 - `scripts/setup_supervisor_public_proxy.sh`: set up Nginx + Basic Auth public proxy for Supervisor UI
 - `scripts/deploy.sh`: one-shot bootstrap + configure + start
-- `env/runpod.env.example`: environment template
+- `env/vllm.env.example`: environment template
 - `ARCHITECTURE.md`: deployment architecture and security model
 - `TROUBLESHOOTING.md`: common errors and fixes from real setup runs
 
-## Quick start on a fresh pod
+Canonical bootstrap script is `scripts/bootstrap_gpu_host.sh`. Legacy `scripts/bootstrap_runpod.sh` is kept as a compatibility wrapper.
+
+## Quick start on a fresh GPU host
 
 1. Create `services` directory and clone this repo:
    ```bash
@@ -34,23 +37,22 @@ This repo turns your manual RunPod setup into a repeatable flow.
    ```
 2. Install required system packages first (includes `nano`, `curl`, `supervisor`, etc.):
    ```bash
-   sudo bash scripts/bootstrap_runpod.sh
+   sudo bash scripts/bootstrap_gpu_host.sh
    ```
 3. Copy env template:
    ```bash
    mkdir -p /workspace/ops
-   cp env/runpod.env.example /workspace/ops/runpod.env
-   nano /workspace/ops/runpod.env
+   cp env/vllm.env.example /workspace/ops/vllm.env
+   nano /workspace/ops/vllm.env
    ```
 4. Set at minimum:
    - `VLLM_MODEL`
    - `SERVED_MODEL_NAME`
    - `VLLM_API_KEY` (long random token)
    - `SUPERVISOR_UI_PASS` (strong password)
-   - If `ENABLE_MEDIA_TRANSCRIBER=true`, also set `MEDIA_REPO_URL`.
 5. Generate config and start services:
    ```bash
-   bash scripts/generate_supervisor_config.sh /workspace/ops/runpod.env
+   bash scripts/generate_supervisor_config.sh /workspace/ops/vllm.env
    bash scripts/supervisor_manage.sh /workspace/ops/supervisord.conf start
    bash scripts/supervisor_manage.sh /workspace/ops/supervisord.conf status
    ```
@@ -76,7 +78,7 @@ print(secrets.token_urlsafe(48))
 PY
 ```
 
-Set it in `/workspace/ops/runpod.env`:
+Set it in `/workspace/ops/vllm.env`:
 ```bash
 VLLM_API_KEY=your_generated_token_here
 ```
@@ -87,16 +89,16 @@ VLLM_API_KEY=your_generated_token_here
 
 ```bash
 cd /workspace/services/vllm-deployment
-sudo bash scripts/deploy.sh /workspace/ops/runpod.env
+sudo bash scripts/deploy.sh /workspace/ops/vllm.env
 ```
 
 `deploy.sh` runs these in order:
 
-1. `scripts/bootstrap_runpod.sh`
+1. `scripts/bootstrap_gpu_host.sh`
    - Installs system dependencies (`supervisor`, `curl`, `nano`, `ffmpeg`, etc.)
    - Creates workspace directories
    - Creates `/workspace/envs/vllm` and installs `vllm`
-2. `scripts/generate_supervisor_config.sh /workspace/ops/runpod.env`
+2. `scripts/generate_supervisor_config.sh /workspace/ops/vllm.env`
    - Reads env values
    - Generates `/workspace/ops/run_vllm.sh`
    - Generates `/workspace/ops/supervisord.conf`
@@ -109,8 +111,8 @@ sudo bash scripts/deploy.sh /workspace/ops/runpod.env
 ### Manual equivalent (if you don’t use deploy.sh)
 
 ```bash
-sudo bash scripts/bootstrap_runpod.sh
-bash scripts/generate_supervisor_config.sh /workspace/ops/runpod.env
+sudo bash scripts/bootstrap_gpu_host.sh
+bash scripts/generate_supervisor_config.sh /workspace/ops/vllm.env
 bash scripts/supervisor_manage.sh /workspace/ops/supervisord.conf start
 bash scripts/supervisor_manage.sh /workspace/ops/supervisord.conf status
 ```
@@ -118,8 +120,8 @@ bash scripts/supervisor_manage.sh /workspace/ops/supervisord.conf status
 ### When you change model/API key/settings later
 
 ```bash
-nano /workspace/ops/runpod.env
-bash scripts/generate_supervisor_config.sh /workspace/ops/runpod.env
+nano /workspace/ops/vllm.env
+bash scripts/generate_supervisor_config.sh /workspace/ops/vllm.env
 bash scripts/supervisor_manage.sh /workspace/ops/supervisord.conf reload
 bash scripts/supervisor_manage.sh /workspace/ops/supervisord.conf restart vllm_text_8000
 ```
@@ -160,7 +162,7 @@ sudo bash scripts/setup_supervisor_public_proxy.sh 9002 superadmin
 
 Health/metadata:
 ```bash
-source /workspace/ops/runpod.env
+source /workspace/ops/vllm.env
 curl -s -H "Authorization: Bearer $VLLM_API_KEY" http://127.0.0.1:8000/v1/models | jq .
 ```
 
@@ -176,7 +178,7 @@ nvidia-smi
 
 ## Expected deployment time
 
-On a fresh RunPod pod, expect about **8 to 25 minutes** in typical cases.
+On a fresh GPU host, expect about **8 to 25 minutes** in typical cases.
 
 - `apt-get update/install`: ~1 to 5 minutes
 - Python + `vllm` install: ~3 to 12 minutes
@@ -215,7 +217,7 @@ sudo bash scripts/setup_supervisor_public_proxy.sh 9002 superadmin 'VeryStrongPa
 sudo bash scripts/setup_supervisor_public_proxy.sh 9002 superadmin 'VeryStrongPasswordHere' 1.2.3.4
 ```
 
-Then expose that port in RunPod and open:
+Then expose that port in your hosting provider and open its public URL (RunPod example):
 
 ```text
 https://<pod-id>-9002.proxy.runpod.net
@@ -233,8 +235,8 @@ If setup or startup fails, use:
 
 ## Security notes
 
-- Do not commit `/workspace/ops/runpod.env`.
+- Do not commit `/workspace/ops/vllm.env`.
 - Keep Supervisor UI on `127.0.0.1` and do not expose port `9000` publicly.
 - If exposing a public dashboard, prefer the Nginx proxy script with strong password and optional IP allowlist.
 - Rotate `VLLM_API_KEY` if exposed.
-- RunPod exposed ports are public by default; add your own auth for internet-facing services.
+- Exposed ports are often public by default; add your own auth for internet-facing services.

@@ -1,8 +1,8 @@
-# RunPod vLLM Deployment Architecture
+# vLLM GPU Deployment Architecture
 
 ## Goals
 
-- Repeatable one-command deployment on a fresh RunPod GPU pod.
+- Repeatable one-command deployment on a fresh Linux GPU host.
 - Process management with Supervisor.
 - Observability for vLLM and GPU usage.
 - Safe-by-default network posture.
@@ -17,7 +17,7 @@
 
 ## Security Model
 
-- Exposed RunPod ports are public endpoints.
+- Exposed provider ports are often public endpoints.
 - Supervisor UI is bound to localhost by default and should not be exposed directly.
 - vLLM uses API key auth (`--api-key`) sourced from env file.
 - Secrets are kept out of repository files.
@@ -44,21 +44,21 @@
 
 ```bash
 cd /workspace/services/vllm-deployment
-sudo bash scripts/deploy.sh /workspace/ops/runpod.env
+sudo bash scripts/deploy.sh /workspace/ops/vllm.env
 ```
 
 ### Internal order used by `deploy.sh`
 
-1. `scripts/bootstrap_runpod.sh`
-2. `scripts/generate_supervisor_config.sh /workspace/ops/runpod.env`
+1. `scripts/bootstrap_gpu_host.sh`
+2. `scripts/generate_supervisor_config.sh /workspace/ops/vllm.env`
 3. `scripts/supervisor_manage.sh /workspace/ops/supervisord.conf start`
 4. `scripts/supervisor_manage.sh /workspace/ops/supervisord.conf status`
 
 ### Manual equivalent
 
 ```bash
-sudo bash scripts/bootstrap_runpod.sh
-bash scripts/generate_supervisor_config.sh /workspace/ops/runpod.env
+sudo bash scripts/bootstrap_gpu_host.sh
+bash scripts/generate_supervisor_config.sh /workspace/ops/vllm.env
 bash scripts/supervisor_manage.sh /workspace/ops/supervisord.conf start
 bash scripts/supervisor_manage.sh /workspace/ops/supervisord.conf status
 ```
@@ -66,8 +66,8 @@ bash scripts/supervisor_manage.sh /workspace/ops/supervisord.conf status
 ### After env/model/API key changes
 
 ```bash
-nano /workspace/ops/runpod.env
-bash scripts/generate_supervisor_config.sh /workspace/ops/runpod.env
+nano /workspace/ops/vllm.env
+bash scripts/generate_supervisor_config.sh /workspace/ops/vllm.env
 bash scripts/supervisor_manage.sh /workspace/ops/supervisord.conf reload
 bash scripts/supervisor_manage.sh /workspace/ops/supervisord.conf restart vllm_text_8000
 ```
@@ -95,8 +95,8 @@ This setup is model-agnostic for single-model serving.
 To switch models, update env values and regenerate config:
 
 ```bash
-nano /workspace/ops/runpod.env
-bash scripts/generate_supervisor_config.sh /workspace/ops/runpod.env
+nano /workspace/ops/vllm.env
+bash scripts/generate_supervisor_config.sh /workspace/ops/vllm.env
 bash scripts/supervisor_manage.sh /workspace/ops/supervisord.conf reload
 bash scripts/supervisor_manage.sh /workspace/ops/supervisord.conf restart vllm_text_8000
 ```
@@ -107,7 +107,7 @@ As long as the model fits your GPU and your vLLM flags are compatible, the same 
 
 - vLLM metrics endpoint:
   - `http://127.0.0.1:8000/metrics` (inside pod)
-  - `https://<podid>-8000.proxy.runpod.net/metrics` (if port exposed)
+  - `https://<public-host>:8000/metrics` (provider-dependent; if port exposed)
 - Quick metrics TUI:
 
 ```bash

@@ -1,7 +1,14 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-ENV_FILE="${1:-/workspace/ops/runpod.env}"
+DEFAULT_ENV_FILE="/workspace/ops/vllm.env"
+LEGACY_ENV_FILE="/workspace/ops/runpod.env"
+ENV_FILE="${1:-${DEFAULT_ENV_FILE}}"
+
+if [[ $# -eq 0 && ! -f "${ENV_FILE}" && -f "${LEGACY_ENV_FILE}" ]]; then
+  ENV_FILE="${LEGACY_ENV_FILE}"
+fi
+
 if [[ ! -f "${ENV_FILE}" ]]; then
   echo "Env file not found: ${ENV_FILE}" >&2
   exit 1
@@ -17,7 +24,7 @@ APP_ROOT="${APP_ROOT:-${PWD}}"
 VLLM_HOST="${VLLM_HOST:-0.0.0.0}"
 VLLM_PORT="${VLLM_PORT:-8000}"
 SUPERVISOR_UI_HOST="${SUPERVISOR_UI_HOST:-127.0.0.1}"
-SUPERVISOR_UI_PORT="${SUPERVISOR_UI_PORT:-9001}"
+SUPERVISOR_UI_PORT="${SUPERVISOR_UI_PORT:-9000}"
 CUDA_VISIBLE_DEVICES="${CUDA_VISIBLE_DEVICES:-0}"
 VLLM_MODEL="${VLLM_MODEL:-Qwen/Qwen2.5-7B-Instruct}"
 SERVED_MODEL_NAME="${SERVED_MODEL_NAME:-qwen2.5-7b}"

@@ -86,5 +86,5 @@ if [[ -n "${ALLOW_IP}" ]]; then
   echo "IP allowlist enabled for: ${ALLOW_IP}"
 fi
 echo
-echo "Next: expose port ${PUBLIC_PORT} in RunPod and open:"
-echo "https://<pod-id>-${PUBLIC_PORT}.proxy.runpod.net"
+echo "Next: expose port ${PUBLIC_PORT} in your provider and open:"
+echo "http(s)://<public-host>:${PUBLIC_PORT}"
