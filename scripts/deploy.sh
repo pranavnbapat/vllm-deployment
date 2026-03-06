@@ -11,7 +11,7 @@ if [[ ! -f "${ENV_FILE}" ]]; then
   if [[ -f "${TEMPLATE_ENV_FILE}" ]]; then
     cp "${TEMPLATE_ENV_FILE}" "${ENV_FILE}"
     echo "Created env file from template: ${ENV_FILE}"
-    echo "Edit required values (at minimum SUPERVISOR_UI_PASS), then rerun this command."
+    echo "Edit optional values if needed, then rerun this command."
     exit 1
   fi
   echo "Env file not found: ${ENV_FILE}" >&2
@@ -38,7 +38,7 @@ if [[ -z "${VLLM_API_KEY:-}" || "${VLLM_API_KEY}" == "replace-with-long-random-t
 fi
 
 if [[ -z "${SUPERVISOR_UI_PASS:-}" || "${SUPERVISOR_UI_PASS}" == "replace-with-strong-password" ]]; then
-  GENERATED_SUPERVISOR_UI_PASS="$(tr -dc 'A-Za-z0-9' </dev/urandom | head -c 16)"
+  GENERATED_SUPERVISOR_UI_PASS="$(tr -dc 'A-Za-z0-9' </dev/urandom | head -c 16 || true)"
   if grep -q '^SUPERVISOR_UI_PASS=' "${ENV_FILE}"; then
     sed -i "s|^SUPERVISOR_UI_PASS=.*|SUPERVISOR_UI_PASS=${GENERATED_SUPERVISOR_UI_PASS}|" "${ENV_FILE}"
   else
