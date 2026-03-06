@@ -55,6 +55,40 @@ fi
 "${SCRIPT_DIR}/supervisor_manage.sh" /workspace/ops/supervisord.conf start
 "${SCRIPT_DIR}/supervisor_manage.sh" /workspace/ops/supervisord.conf status
 
+VLLM_PORT="${VLLM_PORT:-8000}"
+READINESS_TIMEOUT_SEC="${READINESS_TIMEOUT_SEC:-1200}"
+READINESS_POLL_SEC="${READINESS_POLL_SEC:-5}"
+READINESS_HOST="${VLLM_HOST:-0.0.0.0}"
+if [[ "${READINESS_HOST}" == "0.0.0.0" ]]; then
+  READINESS_HOST="127.0.0.1"
+fi
+READINESS_URL="http://${READINESS_HOST}:${VLLM_PORT}/v1/models"
+ERR_LOG="/workspace/vllm/text/logs/vllm_${VLLM_PORT}.err.log"
+
+echo "Waiting for vLLM API readiness at ${READINESS_URL} (timeout: ${READINESS_TIMEOUT_SEC}s)..."
+start_ts="$(date +%s)"
+while true; do
+  if curl -fsS -H "Authorization: Bearer ${VLLM_API_KEY}" "${READINESS_URL}" >/dev/null; then
+    echo "vLLM API is READY."
+    break
+  fi
+
+  now_ts="$(date +%s)"
+  elapsed="$((now_ts - start_ts))"
+  if (( elapsed >= READINESS_TIMEOUT_SEC )); then
+    echo "Timed out waiting for vLLM readiness after ${READINESS_TIMEOUT_SEC}s." >&2
+    "${SCRIPT_DIR}/supervisor_manage.sh" /workspace/ops/supervisord.conf status || true
+    if [[ -f "${ERR_LOG}" ]]; then
+      echo "Last 80 lines of ${ERR_LOG}:"
+      tail -n 80 "${ERR_LOG}" || true
+    fi
+    exit 1
+  fi
+
+  echo "not ready yet (${elapsed}s elapsed)"
+  sleep "${READINESS_POLL_SEC}"
+done
+
 echo "Deployment complete."
 echo "Supervisor UI: http://127.0.0.1:${SUPERVISOR_UI_PORT:-9000} (tunnel this port if remote)"
 echo "vLLM API: http://0.0.0.0:${VLLM_PORT:-8000}/v1"
